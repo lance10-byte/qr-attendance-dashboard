@@ -44,11 +44,6 @@
 <body>
     <h1>QR Code Attendance Dashboard</h1>
 
-    <div id="addRecord">
-        <input type="text" id="name" placeholder="Enter Name" />
-        <button onclick="addAttendance()">Add Record</button>
-    </div>
-
     <div id="reader"></div>
 
     <table>
@@ -73,19 +68,6 @@
 
             startQRScanner();
         };
-
-        function addAttendance() {
-            const nameInput = document.getElementById('name');
-            const name = nameInput.value.trim();
-
-            if (name === '') {
-                alert('Please enter a name.');
-                return;
-            }
-
-            addRecordAndSave(name);
-            nameInput.value = '';
-        }
 
         function addRow(name, date, time) {
             const table = document.getElementById('attendanceList');
@@ -120,15 +102,9 @@
                     cameraConfig,
                     { fps: 10, qrbox: 250 },
                     (decodedText) => {
-                        alert(`QR Code Scanned: ${decodedText}`);
-                        addRecordAndSave(decodedText);
+                        addRecordAndSave(decodedText); // Automatically records attendance
                     },
                     (errorMessage) => {
                         console.log(`QR Scan Error: ${errorMessage}`);
                     }
-                ).catch(err => console.error("QR Scanner Error: ", err));
-            });
-        }
-    </script>
-</body>
-</html>
+                ).catch(err => console.error("QR Scanner Error: ", e
