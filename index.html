@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>QR Code Attendance Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -48,7 +49,7 @@
         <input type="text" id="manualName" placeholder="Enter name manually">
         <button onclick="addManualRecord()">Add Manually</button>
         <button onclick="toggleQRScanner()">Scan QR Code</button>
-        <button onclick="exportToCSV()">Download Excel</button>
+        <button onclick="exportToExcel()">Download Excel</button>
     </div>
 
     <div id="reader"></div>
@@ -71,13 +72,11 @@
         let qrCodeScanner;
         let scannedRecords = new Set();
 
-        // Helper function to get today's date in YYYY-MM-DD format
         function getTodayDate() {
             const today = new Date();
             return today.toISOString().split('T')[0];
         }
 
-        // Reset scanned records at 6 AM daily
         function resetDailyAt6AM() {
             const now = new Date();
             const nextReset = new Date();
@@ -97,13 +96,12 @@
 
         resetDailyAt6AM();
 
-        // Load records from Local Storage
         window.onload = function() {
             const records = JSON.parse(localStorage.getItem('attendanceRecords')) || [];
             records.forEach(record => {
                 addRow(record.name, record.date, record.time);
                 if (record.date === getTodayDate()) {
-                    scannedRecords.add(record.name); // Track scanned records for today
+                    scannedRecords.add(record.name);
                 }
             });
         };
@@ -167,9 +165,9 @@
 
                 qrCodeScanner.start(
                     cameraConfig,
-                    { fps: 10, qrbox: 350 }, // Increased size of scanner
+                    { fps: 10, qrbox: 350 },
                     (decodedText) => {
-                        addRecordAndSave(decodedText); // Automatically records attendance
+                        addRecordAndSave(decodedText);
                     },
                     (errorMessage) => {
                         console.log(`QR Scan Error: ${errorMessage}`);
@@ -178,20 +176,12 @@
             });
         }
 
-        function exportToCSV() {
+        function exportToExcel() {
             const records = JSON.parse(localStorage.getItem('attendanceRecords')) || [];
-            let csvContent = "data:text/csv;charset=utf-8,Name,Date,Time\n";
-
-            records.forEach(record => {
-                csvContent += `${record.name},${record.date},${record.time}\n`;
-            });
-
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "attendance_records.csv");
-            document.body.appendChild(link);
-            link.click();
+            const worksheet = XLSX.utils.json_to_sheet(records);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Attendance");
+            XLSX.writeFile(workbook, "attendance_records.xlsx");
         }
     </script>
 </body>
