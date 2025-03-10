@@ -48,6 +48,7 @@
         <input type="text" id="manualName" placeholder="Enter name manually">
         <button onclick="addManualRecord()">Add Manually</button>
         <button onclick="toggleQRScanner()">Scan QR Code</button>
+        <button onclick="exportToCSV()">Download Excel</button>
     </div>
 
     <div id="reader"></div>
@@ -75,6 +76,26 @@
             const today = new Date();
             return today.toISOString().split('T')[0];
         }
+
+        // Reset scanned records at 6 AM daily
+        function resetDailyAt6AM() {
+            const now = new Date();
+            const nextReset = new Date();
+            nextReset.setHours(6, 0, 0, 0);
+
+            if (now >= nextReset) {
+                nextReset.setDate(nextReset.getDate() + 1);
+            }
+
+            const timeUntilReset = nextReset - now;
+
+            setTimeout(() => {
+                scannedRecords.clear();
+                resetDailyAt6AM();
+            }, timeUntilReset);
+        }
+
+        resetDailyAt6AM();
 
         // Load records from Local Storage
         window.onload = function() {
@@ -155,6 +176,22 @@
                     }
                 ).catch(err => console.error("QR Scanner Error: ", err));
             });
+        }
+
+        function exportToCSV() {
+            const records = JSON.parse(localStorage.getItem('attendanceRecords')) || [];
+            let csvContent = "data:text/csv;charset=utf-8,Name,Date,Time\n";
+
+            records.forEach(record => {
+                csvContent += `${record.name},${record.date},${record.time}\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "attendance_records.csv");
+            document.body.appendChild(link);
+            link.click();
         }
     </script>
 </body>
