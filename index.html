@@ -26,16 +26,16 @@
             background-color: #4CAF50;
             color: white;
         }
-        #addRecord {
-            margin: 20px 0;
+        #controls {
             text-align: center;
+            margin: 20px 0;
         }
         input, button {
             padding: 10px;
             margin: 5px;
         }
         #reader {
-            display: flex;
+            display: none;
             justify-content: center;
             margin-top: 20px;
         }
@@ -43,6 +43,12 @@
 </head>
 <body>
     <h1>QR Code Attendance Dashboard</h1>
+
+    <div id="controls">
+        <input type="text" id="manualName" placeholder="Enter name manually">
+        <button onclick="addManualRecord()">Add Manually</button>
+        <button onclick="toggleQRScanner()">Scan QR Code</button>
+    </div>
 
     <div id="reader"></div>
 
@@ -61,12 +67,12 @@
 
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script>
+        let qrCodeScanner;
+
         // Load records from Local Storage
         window.onload = function() {
             const records = JSON.parse(localStorage.getItem('attendanceRecords')) || [];
             records.forEach(record => addRow(record.name, record.date, record.time));
-
-            startQRScanner();
         };
 
         function addRow(name, date, time) {
@@ -91,12 +97,34 @@
             saveRecord(name, date, time);
         }
 
+        function addManualRecord() {
+            const nameInput = document.getElementById('manualName');
+            const name = nameInput.value.trim();
+            if (name) {
+                addRecordAndSave(name);
+                nameInput.value = '';
+            } else {
+                alert("Please enter a name.");
+            }
+        }
+
+        function toggleQRScanner() {
+            const readerDiv = document.getElementById('reader');
+            if (readerDiv.style.display === 'none') {
+                readerDiv.style.display = 'flex';
+                startQRScanner();
+            } else {
+                readerDiv.style.display = 'none';
+                if (qrCodeScanner) qrCodeScanner.stop();
+            }
+        }
+
         function startQRScanner() {
-            const qrCodeScanner = new Html5Qrcode("reader");
+            qrCodeScanner = new Html5Qrcode("reader");
 
             navigator.mediaDevices.enumerateDevices().then((devices) => {
                 const cameraId = devices.find(device => device.kind === 'videoinput');
-                const cameraConfig = cameraId ? { deviceId: cameraId.deviceId } : { facingMode: "user" };
+                const cameraConfig = cameraId ? { deviceId: cameraId.deviceId } : { facingMode: "environment" };
 
                 qrCodeScanner.start(
                     cameraConfig,
@@ -107,4 +135,9 @@
                     (errorMessage) => {
                         console.log(`QR Scan Error: ${errorMessage}`);
                     }
-                ).catch(err => console.error("QR Scanner Error: ", e
+                ).catch(err => console.error("QR Scanner Error: ", err));
+            });
+        }
+    </script>
+</body>
+</html>
