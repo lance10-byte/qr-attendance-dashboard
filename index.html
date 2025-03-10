@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>QR Code Attendance Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f9f9f9;
+        }
+        h1 {
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        #addRecord {
+            margin: 20px 0;
+            text-align: center;
+        }
+        input, button {
+            padding: 10px;
+            margin: 5px;
+        }
+        #reader {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>QR Code Attendance Dashboard</h1>
+
+    <div id="addRecord">
+        <input type="text" id="name" placeholder="Enter Name" />
+        <button onclick="addAttendance()">Add Record</button>
+    </div>
+
+    <div id="reader"></div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Date</th>
+                <th>Time</th>
+            </tr>
+        </thead>
+        <tbody id="attendanceList">
+            <!-- Attendance records will appear here -->
+        </tbody>
+    </table>
+
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script>
+        // Load records from Local Storage
+        window.onload = function() {
+            const records = JSON.parse(localStorage.getItem('attendanceRecords')) || [];
+            records.forEach(record => addRow(record.name, record.date, record.time));
+
+            startQRScanner();
+        };
+
+        function addAttendance() {
+            const nameInput = document.getElementById('name');
+            const name = nameInput.value.trim();
+
+            if (name === '') {
+                alert('Please enter a name.');
+                return;
+            }
+
+            addRecordAndSave(name);
+            nameInput.value = '';
+        }
+
+        function addRow(name, date, time) {
+            const table = document.getElementById('attendanceList');
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `<td>${name}</td><td>${date}</td><td>${time}</td>`;
+            table.appendChild(newRow);
+        }
+
+        function saveRecord(name, date, time) {
+            const records = JSON.parse(localStorage.getItem('attendanceRecords')) || [];
+            records.push({ name, date, time });
+            localStorage.setItem('attendanceRecords', JSON.stringify(records));
+        }
+
+        function addRecordAndSave(name) {
+            const now = new Date();
+            const date = now.toLocaleDateString();
+            const time = now.toLocaleTimeString();
+
+            addRow(name, date, time);
+            saveRecord(name, date, time);
+        }
+
+        function startQRScanner() {
+            const qrCodeScanner = new Html5Qrcode("reader");
+
+            navigator.mediaDevices.enumerateDevices().then((devices) => {
+                const cameraId = devices.find(device => device.kind === 'videoinput');
+                const cameraConfig = cameraId ? { deviceId: cameraId.deviceId } : { facingMode: "user" };
+
+                qrCodeScanner.start(
+                    cameraConfig,
+                    { fps: 10, qrbox: 250 },
+                    (decodedText) => {
+                        alert(`QR Code Scanned: ${decodedText}`);
+                        addRecordAndSave(decodedText);
+                    },
+                    (errorMessage) => {
+                        console.log(`QR Scan Error: ${errorMessage}`);
+                    }
+                ).catch(err => console.error("QR Scanner Error: ", err));
+            });
+        }
+    </script>
+</body>
+</html>
