@@ -68,11 +68,23 @@
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script>
         let qrCodeScanner;
+        let scannedRecords = new Set();
+
+        // Helper function to get today's date in YYYY-MM-DD format
+        function getTodayDate() {
+            const today = new Date();
+            return today.toISOString().split('T')[0];
+        }
 
         // Load records from Local Storage
         window.onload = function() {
             const records = JSON.parse(localStorage.getItem('attendanceRecords')) || [];
-            records.forEach(record => addRow(record.name, record.date, record.time));
+            records.forEach(record => {
+                addRow(record.name, record.date, record.time);
+                if (record.date === getTodayDate()) {
+                    scannedRecords.add(record.name); // Track scanned records for today
+                }
+            });
         };
 
         function addRow(name, date, time) {
@@ -89,12 +101,18 @@
         }
 
         function addRecordAndSave(name) {
+            const today = getTodayDate();
+            if (scannedRecords.has(name)) {
+                alert("This QR code has already been scanned today.");
+                return;
+            }
+
+            scannedRecords.add(name);
             const now = new Date();
-            const date = now.toLocaleDateString();
             const time = now.toLocaleTimeString();
 
-            addRow(name, date, time);
-            saveRecord(name, date, time);
+            addRow(name, today, time);
+            saveRecord(name, today, time);
         }
 
         function addManualRecord() {
@@ -128,7 +146,7 @@
 
                 qrCodeScanner.start(
                     cameraConfig,
-                    { fps: 10, qrbox: 250 },
+                    { fps: 10, qrbox: 350 }, // Increased size of scanner
                     (decodedText) => {
                         addRecordAndSave(decodedText); // Automatically records attendance
                     },
