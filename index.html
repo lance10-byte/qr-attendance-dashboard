@@ -123,8 +123,8 @@
             qrCodeScanner = new Html5Qrcode("reader");
 
             navigator.mediaDevices.enumerateDevices().then((devices) => {
-                const cameraId = devices.find(device => device.kind === 'videoinput');
-                const cameraConfig = cameraId ? { deviceId: cameraId.deviceId } : { facingMode: "environment" };
+                const backCamera = devices.find(device => device.kind === 'videoinput' && device.label.toLowerCase().includes('back'));
+                const cameraConfig = backCamera ? { deviceId: backCamera.deviceId } : { facingMode: "environment" };
 
                 qrCodeScanner.start(
                     cameraConfig,
