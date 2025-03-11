@@ -50,6 +50,8 @@
         <button onclick="addManualRecord()">Add Manually</button>
         <button onclick="toggleQRScanner()">Scan QR Code</button>
         <button onclick="exportToExcel()">Download Excel</button>
+        <input type="text" id="searchInput" placeholder="Search records">
+        <button onclick="searchRecords()">Search</button>
     </div>
 
     <div id="reader"></div>
@@ -182,6 +184,14 @@
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "Attendance");
             XLSX.writeFile(workbook, "attendance_records.xlsx");
+        }
+
+        function searchRecords() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const rows = document.querySelectorAll('#attendanceList tr');
+            rows.forEach(row => {
+                row.style.display = row.innerText.toLowerCase().includes(query) ? '' : 'none';
+            });
         }
     </script>
 </body>
