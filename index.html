@@ -35,9 +35,6 @@
             padding: 10px;
             margin: 5px;
         }
-        #searchInput {
-            width: 200px;
-        }
         #reader {
             display: none;
             justify-content: center;
@@ -53,8 +50,6 @@
         <button onclick="addManualRecord()">Add Manually</button>
         <button onclick="toggleQRScanner()">Scan QR Code</button>
         <button onclick="exportToExcel()">Download Excel</button>
-        <br>
-        <input type="text" id="searchInput" placeholder="Search records" oninput="searchRecords()">
     </div>
 
     <div id="reader"></div>
@@ -187,25 +182,6 @@
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "Attendance");
             XLSX.writeFile(workbook, "attendance_records.xlsx");
-        }
-
-        function searchRecords() {
-            const input = document.getElementById('searchInput').value.toLowerCase();
-            const table = document.getElementById('attendanceList');
-            const rows = table.getElementsByTagName('tr');
-
-            for (let i = 0; i < rows.length; i++) {
-                const cells = rows[i].getElementsByTagName('td');
-                if (cells.length > 0) {
-                    const name = cells[0].textContent.toLowerCase();
-                    const date = cells[1].textContent.toLowerCase();
-                    if (name.includes(input) || date.includes(input)) {
-                        rows[i].style.display = '';
-                    } else {
-                        rows[i].style.display = 'none';
-                    }
-                }
-            }
         }
     </script>
 </body>
